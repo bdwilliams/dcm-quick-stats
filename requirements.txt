@@ -1,0 +1,2 @@
+configparser
+https://github.com/enStratus/mixcoatl/zipball/master
