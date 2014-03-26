@@ -1,9 +1,0 @@
-[Company 1]
-access_key=123412341234
-secret_key=456456456456
-hostname=test.com
-
-[Company 2]
-access_key=123412341234
-secret_key=456456456456
-hostname=test2.com

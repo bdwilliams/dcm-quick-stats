@@ -1,2 +1,3 @@
-configparser
+MySQL-python
+sqlalchemy
 https://github.com/enStratus/mixcoatl/zipball/master

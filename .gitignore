@@ -37,5 +37,6 @@ nosetests.xml
 
 test.py
 config.ini
+run.sh
 
 .DS_Store
