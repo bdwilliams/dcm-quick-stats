@@ -38,5 +38,5 @@ nosetests.xml
 test.py
 config.ini
 run.sh
-
+tmpfile
 .DS_Store
