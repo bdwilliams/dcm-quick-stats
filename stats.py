@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import os.path, json, sys, time, collections
+import os.path, json, sys, time, collections, smtplib
+from email.MIMEText import MIMEText
 from sqlalchemy.engine import create_engine
 from sqlalchemy import schema, types, Table
 from datetime import datetime
@@ -9,76 +10,120 @@ from mixcoatl.admin.billing_code import BillingCode
 from mixcoatl.infrastructure.server import Server
 from mixcoatl.settings.load_settings import settings as mixcoatl_settings
 
-budgets = None
-
-try:
-	budgets = BillingCode.all()
-except:
-	print "Get Billing Codes didn't finish."
-
-while budgets is None:
-	print "waiting..."
-	time.sleep(5)
-else:
-	with open('tmpfile', 'w') as outfile:
-		json.dump(str(budgets), outfile)
-	metadata = schema.MetaData()
-	engine = create_engine('mysql://root@127.0.0.1/poc')
-	metadata.bind = engine
-	conn = engine.connect()
+if os.environ['SQL_USER'] is not None and os.environ['TO_ADDRESS'] is not None:
+	budgets = None
 	
-	poc = Table('poc', metadata, autoload=True)
-	s = poc.select().where(poc.c.active == 'Y')
-	rs = s.execute()
-
-	for row in rs.fetchall():
-		mixcoatl_settings.set_endpoint('http://'+row['poc_host']+':15000/api/enstratus/2013-12-07')
-		mixcoatl_settings.set_api_version('2013-12-07')
-		mixcoatl_settings.set_access_key(row['api_key'])
-		mixcoatl_settings.set_secret_key(row['secret_key'])
+	try:
+		budgets = BillingCode.all()
+	except:
+		print "Get Billing Codes didn't finish."
 	
-		active_only = 'false'
-		servers = sorted(Server.all(active_only), key=attrgetter('start_date'))
-		running = 0
-		launches_count = 0
-		launches = dict()
-			
-		for server in servers:
-			datekey = datetime.strptime(server.start_date, '%Y-%m-%dT%H:%M:%S.%f+0000').strftime("%Y-%m-%d")
-			
-			launches_count += 1
-
-			if datekey in launches:
-				launches[datekey] += 1
-			else:
-				launches[datekey] = 1
-	
-			if server.status != 'TERMINATED':
-				running += 1
-	
-		print str(row['client_name']),"has launched",launches_count,"and has",str(running),"running server(s)."
-
-		launch_list = collections.OrderedDict(sorted(launches.items()))
-
-		print "Daily breakdown:"
+	while budgets is None:
+		print "waiting..."
+		time.sleep(5)
+	else:
+		with open('tmpfile', 'w') as outfile:
+			json.dump(str(budgets), outfile)
+		metadata = schema.MetaData()
+		sql_creds = os.environ['SQL_USER']
 		
-		for l in launch_list:
-			print "\tDate:",l," Launches:",launches[l]
+		if os.environ['SQL_PASSWORD'] is not None:
+			sql_creds += ":"+os.environ['SQL_PASSWORD']
 
-		#print "Sales/Engineer:",row['sales_name']
-		#print "Sales Email:",row['sales_email']
-		#print "Date POC completed by CSE:",row['poc_ready_date']
-		#print "POC Ownership: CSE or Sales:",row['poc_ownership']
-		#print "Date POC handed to Sales:",row['handed_to_sales']
-		#print "Date POC handed to Client:",row['handed_to_client']
-		#print "Length of POC:",row['length_of_poc']
+		engine = create_engine('mysql://'+sql_creds+'@127.0.0.1/poc')
+		metadata.bind = engine
+		conn = engine.connect()
+		
+		poc = Table('poc', metadata, autoload=True)
+		s = poc.select().where(poc.c.active == 'Y')
+		rs = s.execute()
 	
-		for b in budgets:
-			if row['budget_id'] == b.billing_code_id:
-				if b.current_usage and b.current_usage['value']:
-					print "Current Cost: $",str(round(b.current_usage['value'],2))
+		for row in rs.fetchall():
+			mixcoatl_settings.set_endpoint('http://'+row['poc_host']+':15000/api/enstratus/2013-12-07')
+			mixcoatl_settings.set_api_version('2013-12-07')
+			mixcoatl_settings.set_access_key(row['api_key'])
+			mixcoatl_settings.set_secret_key(row['secret_key'])
+		
+			active_only = 'false'
+			servers = sorted(Server.all(active_only), key=attrgetter('start_date'))
+			running = 0
+			launches_count = 0
+			launches = dict()
+			msg = ""
 	
-		print " --- "
+			for server in servers:
+				datekey = datetime.strptime(server.start_date, '%Y-%m-%dT%H:%M:%S.%f+0000').strftime("%Y-%m-%d")
+				
+				launches_count += 1
 	
-	if os.path.exists('tmpfile'):
-		os.remove('tmpfile')
+				if datekey in launches:
+					launches[datekey] += 1
+				else:
+					launches[datekey] = 1
+		
+				if server.status != 'TERMINATED':
+					running += 1
+		
+			msg += str(row['client_name'])+"\n\n"
+			msg += "Launched Server(s): "+str(launches_count)+"\n"
+			msg += "Running Server(s): "+str(running)+"\n"
+	
+			launch_list = collections.OrderedDict(sorted(launches.items()))
+
+			msg += "\n"
+
+			msg += "Daily breakdown:"+"\n"
+			
+			for l in launch_list:
+				msg += "\tDate:"+l+" Launches:"+str(launches[l])+"\n"
+	
+			msg += "\n"
+			
+			if row['sales_name'] is not None:
+				msg += "Sales/Engineer:"+row['sales_name']+"\n"
+	
+			if row['sales_email'] is not None:
+				msg += "Sales Email:"+row['sales_email']+"\n"
+	
+			if row['poc_ready_date'] is not None:
+				msg += "Date POC completed by CSE:"+row['poc_ready_date']+"\n"
+	
+			if row['poc_ownership'] is not None:
+				msg += "POC Ownership: CSE or Sales:"+row['poc_ownership']+"\n"
+	
+			if row['handed_to_sales'] is not None:
+				msg += "Date POC handed to Sales:"+row['handed_to_sales']+"\n"
+	
+			if row['handed_to_client'] is not None:
+				msg += "Date POC handed to Client:"+row['handed_to_client']+"\n"
+	
+			if row['length_of_poc'] is not None:
+				msg += "Length of POC:"+str(row['length_of_poc'])+"\n"
+		
+			for b in budgets:
+				if row['budget_id'] == b.billing_code_id:
+					if b.current_usage and b.current_usage['value']:
+						msg += "Current Cost: $"+str(round(b.current_usage['value'],2))+"\n"
+			
+			msg_body = MIMEText(msg)
+
+			if row['sales_email'] is not None:
+				to = [os.environ['TO_ADDRESS'], row['sales_email']]
+			else:
+				to = os.environ['TO_ADDRESS']
+
+			msg_body['To'] = ", ".join(to)
+			msg_body['Subject'] = str(row['client_name'])+" POC"
+			
+			try:
+				smtpObj = smtplib.SMTP("localhost")				
+				smtpObj.sendmail('poc-notifications@enstratius.com', to, msg_body.as_string())
+				print "Sent Email..."
+				smtpObj.quit()
+			except SMTPException:
+				print "Error: unable to send email."
+		
+		if os.path.exists('tmpfile'):
+			os.remove('tmpfile')
+else:
+	print "You must set the SQL_USER and SQL_PASSWORD environment variables."
