@@ -115,11 +115,13 @@ if os.environ['SQL_USER'] is not None and os.environ['TO_ADDRESS'] is not None:
 			elif row['se_email'] is  None and row['ae_email'] is not None:
 				to = [os.environ['TO_ADDRESS'], row['ae_email']]
 			else:
-				to = os.environ['TO_ADDRESS']
-
+				to = [os.environ['TO_ADDRESS']]
+			
 			msg_body['To'] = ", ".join(to)
 			msg_body['Subject'] = str(row['client_name'])+" Managed Trial Stats ("+str(time.strftime("%Y-%m-%d"))+")"
 
+			sys.exit(1)
+			
 			try:
 				smtpObj = smtplib.SMTP("localhost")				
 				smtpObj.sendmail('poc-notifications@enstratius.com', to, msg_body.as_string())
