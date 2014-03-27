@@ -35,9 +35,9 @@ if os.environ['SQL_USER'] is not None and os.environ['TO_ADDRESS'] is not None:
 		conn = engine.connect()
 		
 		poc = Table('poc', metadata, autoload=True)
-		s = poc.select().where(poc.c.active == 'Y')
+		s = poc.select().where(poc.c.active == 'Y' and poc.c.trial_start is not None)
 		rs = s.execute()
-	
+		
 		for row in rs.fetchall():
 			mixcoatl_settings.set_endpoint('http://'+row['server_host']+':15000/api/enstratus/2013-12-07')
 			mixcoatl_settings.set_api_version('2013-12-07')
@@ -53,16 +53,18 @@ if os.environ['SQL_USER'] is not None and os.environ['TO_ADDRESS'] is not None:
 	
 			for server in servers:
 				datekey = datetime.strptime(server.start_date, '%Y-%m-%dT%H:%M:%S.%f+0000').strftime("%Y-%m-%d")
+				trial_start_formatted = datetime.strptime(str(row['trial_start']), '%Y-%m-%d 00:00:00').strftime("%Y-%m-%d")
 				
-				launches_count += 1
-	
-				if datekey in launches:
-					launches[datekey] += 1
-				else:
-					launches[datekey] = 1
+				if datekey > trial_start_formatted:
+					launches_count += 1
 		
-				if server.status != 'TERMINATED':
-					running += 1
+					if datekey in launches:
+						launches[datekey] += 1
+					else:
+						launches[datekey] = 1
+			
+					if server.status != 'TERMINATED':
+						running += 1
 		
 			msg += str(row['client_name'])+"\n\n"
 			msg += "Launched Server(s): "+str(launches_count)+"\n"
@@ -119,9 +121,7 @@ if os.environ['SQL_USER'] is not None and os.environ['TO_ADDRESS'] is not None:
 			
 			msg_body['To'] = ", ".join(to)
 			msg_body['Subject'] = str(row['client_name'])+" Managed Trial Stats ("+str(time.strftime("%Y-%m-%d"))+")"
-
-			sys.exit(1)
-			
+		
 			try:
 				smtpObj = smtplib.SMTP("localhost")				
 				smtpObj.sendmail('poc-notifications@enstratius.com', to, msg_body.as_string())
