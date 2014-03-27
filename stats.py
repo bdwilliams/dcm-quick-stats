@@ -86,13 +86,13 @@ if os.environ['SQL_USER'] is not None and os.environ['TO_ADDRESS'] is not None:
 				msg += "Account Executive: "+row['ae_name']+"\n"
 	
 			if row['ready_date'] is not None:
-				msg += "Date Managed Trial created by CSE: "+row['ready_date']+"\n"
+				msg += "Date Managed Trial created by CSE: "+str(row['ready_date'])+"\n"
 	
 			if row['handed_to_sales'] is not None:
-				msg += "Date Managed Trial handed to Sales :"+row['handed_to_sales']+"\n"
+				msg += "Date Managed Trial handed to Sales :"+str(row['handed_to_sales'])+"\n"
 	
 			if row['trial_start'] is not None:
-				msg += "Date Managed Trial handed to Client: "+row['trial_start']+"\n"
+				msg += "Date Managed Trial handed to Client: "+str(row['trial_start'])+"\n"
 	
 			if row['trial_end'] is not None and row['trial_end'] > 0:
 				msg += "Date Managed Trial completes: "+str(row['trial_end'])+"\n"
