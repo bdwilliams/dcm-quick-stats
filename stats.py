@@ -86,16 +86,20 @@ if os.environ['SQL_USER'] is not None and os.environ['TO_ADDRESS'] is not None:
 				msg += "Account Executive: "+row['ae_name']+"\n"
 	
 			if row['ready_date'] is not None:
-				msg += "Date Managed Trial created by CSE: "+str(row['ready_date'])+"\n"
+				ready_date_formatted = datetime.strptime(row['ready_date'], '%Y-%m-%d 00:00:00').strftime("%Y-%m-%d")
+				msg += "Date Managed Trial created by CSE: "+str(ready_date_formatted)+"\n"
 	
 			if row['handed_to_sales'] is not None:
-				msg += "Date Managed Trial handed to Sales :"+str(row['handed_to_sales'])+"\n"
+				handed_to_sales_formatted = datetime.strptime(row['handed_to_sales'], '%Y-%m-%d 00:00:00').strftime("%Y-%m-%d")
+				msg += "Date Managed Trial handed to Sales :"+str(handed_to_sales_formatted)+"\n"
 	
 			if row['trial_start'] is not None:
-				msg += "Date Managed Trial handed to Client: "+str(row['trial_start'])+"\n"
+				trial_start_formatted = datetime.strptime(row['trial_start'], '%Y-%m-%d 00:00:00').strftime("%Y-%m-%d")
+				msg += "Date Managed Trial handed to Client: "+str(trial_start_formatted)+"\n"
 	
 			if row['trial_end'] is not None and row['trial_end'] > 0:
-				msg += "Date Managed Trial completes: "+str(row['trial_end'])+"\n"
+				trial_end_formatted = datetime.strptime(row['trial_end'], '%Y-%m-%d 00:00:00').strftime("%Y-%m-%d")
+				msg += "Date Managed Trial completes: "+str(trial_end_formatted)+"\n"
 		
 			for b in budgets:
 				if row['budget_id'] == b.billing_code_id:
@@ -127,4 +131,4 @@ if os.environ['SQL_USER'] is not None and os.environ['TO_ADDRESS'] is not None:
 		if os.path.exists('tmpfile'):
 			os.remove('tmpfile')
 else:
-	print "You must set the SQL_USER and SQL_PASSWORD environment variables."
+	print "You must set the SQL_USER and TO_ADDRESS environment variables."
