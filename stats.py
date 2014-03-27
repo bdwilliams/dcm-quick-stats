@@ -97,7 +97,7 @@ if os.environ['SQL_USER'] is not None and os.environ['TO_ADDRESS'] is not None:
 				trial_start_formatted = datetime.strptime(str(row['trial_start']), '%Y-%m-%d 00:00:00').strftime("%Y-%m-%d")
 				msg += "Date Managed Trial handed to Client: "+str(trial_start_formatted)+"\n"
 	
-			if row['trial_end'] is not None and row['trial_end'] > 0:
+			if row['trial_end'] is not None:
 				trial_end_formatted = datetime.strptime(str(row['trial_end']), '%Y-%m-%d 00:00:00').strftime("%Y-%m-%d")
 				msg += "Date Managed Trial completes: "+str(trial_end_formatted)+"\n"
 		
@@ -118,7 +118,7 @@ if os.environ['SQL_USER'] is not None and os.environ['TO_ADDRESS'] is not None:
 				to = os.environ['TO_ADDRESS']
 
 			msg_body['To'] = ", ".join(to)
-			msg_body['Subject'] = str(row['client_name'])+" Managed Trial Stats"
+			msg_body['Subject'] = str(row['client_name'])+" Managed Trial Stats ("+str(time.strftime("%Y-%m-%d"))+")"
 
 			try:
 				smtpObj = smtplib.SMTP("localhost")				
