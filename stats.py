@@ -86,19 +86,19 @@ if os.environ['SQL_USER'] is not None and os.environ['TO_ADDRESS'] is not None:
 				msg += "Account Executive: "+row['ae_name']+"\n"
 	
 			if row['ready_date'] is not None:
-				ready_date_formatted = datetime.strptime(row['ready_date'], '%Y-%m-%d 00:00:00').strftime("%Y-%m-%d")
+				ready_date_formatted = datetime.strptime(str(row['ready_date']), '%Y-%m-%d 00:00:00').strftime("%Y-%m-%d")
 				msg += "Date Managed Trial created by CSE: "+str(ready_date_formatted)+"\n"
 	
 			if row['handed_to_sales'] is not None:
-				handed_to_sales_formatted = datetime.strptime(row['handed_to_sales'], '%Y-%m-%d 00:00:00').strftime("%Y-%m-%d")
+				handed_to_sales_formatted = datetime.strptime(str(row['handed_to_sales']), '%Y-%m-%d 00:00:00').strftime("%Y-%m-%d")
 				msg += "Date Managed Trial handed to Sales :"+str(handed_to_sales_formatted)+"\n"
 	
 			if row['trial_start'] is not None:
-				trial_start_formatted = datetime.strptime(row['trial_start'], '%Y-%m-%d 00:00:00').strftime("%Y-%m-%d")
+				trial_start_formatted = datetime.strptime(str(row['trial_start']), '%Y-%m-%d 00:00:00').strftime("%Y-%m-%d")
 				msg += "Date Managed Trial handed to Client: "+str(trial_start_formatted)+"\n"
 	
 			if row['trial_end'] is not None and row['trial_end'] > 0:
-				trial_end_formatted = datetime.strptime(row['trial_end'], '%Y-%m-%d 00:00:00').strftime("%Y-%m-%d")
+				trial_end_formatted = datetime.strptime(str(row['trial_end']), '%Y-%m-%d 00:00:00').strftime("%Y-%m-%d")
 				msg += "Date Managed Trial completes: "+str(trial_end_formatted)+"\n"
 		
 			for b in budgets:
