@@ -39,7 +39,7 @@ if os.environ['SQL_USER'] is not None and os.environ['TO_ADDRESS'] is not None:
 		rs = s.execute()
 	
 		for row in rs.fetchall():
-			mixcoatl_settings.set_endpoint('http://'+row['poc_host']+':15000/api/enstratus/2013-12-07')
+			mixcoatl_settings.set_endpoint('http://'+row['server_host']+':15000/api/enstratus/2013-12-07')
 			mixcoatl_settings.set_api_version('2013-12-07')
 			mixcoatl_settings.set_access_key(row['api_key'])
 			mixcoatl_settings.set_secret_key(row['secret_key'])
@@ -79,26 +79,23 @@ if os.environ['SQL_USER'] is not None and os.environ['TO_ADDRESS'] is not None:
 	
 			msg += "\n"
 			
-			if row['sales_name'] is not None:
-				msg += "Sales/Engineer:"+row['sales_name']+"\n"
+			if row['se_name'] is not None:
+				msg += "Sales Engineer: "+row['se_name']+"\n"
+
+			if row['ae_name'] is not None:
+				msg += "Account Executive: "+row['ae_name']+"\n"
 	
-			if row['sales_email'] is not None:
-				msg += "Sales Email:"+row['sales_email']+"\n"
-	
-			if row['poc_ready_date'] is not None:
-				msg += "Date POC completed by CSE:"+row['poc_ready_date']+"\n"
-	
-			if row['poc_ownership'] is not None:
-				msg += "POC Ownership: CSE or Sales:"+row['poc_ownership']+"\n"
+			if row['ready_date'] is not None:
+				msg += "Date Managed Trial created by CSE: "+row['ready_date']+"\n"
 	
 			if row['handed_to_sales'] is not None:
-				msg += "Date POC handed to Sales:"+row['handed_to_sales']+"\n"
+				msg += "Date Managed Trial handed to Sales :"+row['handed_to_sales']+"\n"
 	
-			if row['handed_to_client'] is not None:
-				msg += "Date POC handed to Client:"+row['handed_to_client']+"\n"
+			if row['trial_start'] is not None:
+				msg += "Date Managed Trial handed to Client: "+row['trial_start']+"\n"
 	
-			if row['length_of_poc'] is not None:
-				msg += "Length of POC:"+str(row['length_of_poc'])+"\n"
+			if row['trial_end'] is not None and row['trial_end'] > 0:
+				msg += "Date Managed Trial completes: "+str(row['trial_end'])+"\n"
 		
 			for b in budgets:
 				if row['budget_id'] == b.billing_code_id:
@@ -107,14 +104,18 @@ if os.environ['SQL_USER'] is not None and os.environ['TO_ADDRESS'] is not None:
 			
 			msg_body = MIMEText(msg)
 
-			if row['sales_email'] is not None:
-				to = [os.environ['TO_ADDRESS'], row['sales_email']]
+			if row['se_email'] is not None and row['ae_email'] is not None:
+				to = [os.environ['TO_ADDRESS'], row['se_email'], row['ae_email']]
+			elif row['se_email'] is not None and row['ae_email'] is None:
+				to = [os.environ['TO_ADDRESS'], row['se_email']]
+			elif row['se_email'] is  None and row['ae_email'] is not None:
+				to = [os.environ['TO_ADDRESS'], row['ae_email']]
 			else:
 				to = os.environ['TO_ADDRESS']
 
 			msg_body['To'] = ", ".join(to)
-			msg_body['Subject'] = str(row['client_name'])+" POC"
-			
+			msg_body['Subject'] = str(row['client_name'])+" Managed Trial Stats"
+
 			try:
 				smtpObj = smtplib.SMTP("localhost")				
 				smtpObj.sendmail('poc-notifications@enstratius.com', to, msg_body.as_string())
