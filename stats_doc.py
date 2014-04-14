@@ -73,16 +73,16 @@ if os.environ['SQL_USER'] is not None:
 			else:
 				trial_end_formatted = "N/A"
 
-			msg += "\t<tr>\n"
-			msg += "\t\t<td>"+str(row['client_name'])+"</td>\n"
-			msg += "\t\t<td>"+str(row['se_name'])+"</td>\n"
-			msg += "\t\t<td>"+str(row['ae_name'])+"</td>\n"
-			#msg += "\t\t<td>Test</td>\n"
-			msg += "\t\t<td>"+str(trial_start_formatted)+"</td>\n"
-			msg += "\t\t<td>"+str(trial_end_formatted)+"</td>\n"
-			msg += "\t\t<td>"+str(running)+"</td>\n"
-			msg += "\t\t<td>"+str(launches_count)+"</td>\n"
-			msg += "\t</tr>\n"
+		msg += "\t<tr>\n"
+		msg += "\t\t<td>"+str(row['client_name'])+"</td>\n"
+		msg += "\t\t<td>"+str(row['se_name'])+"</td>\n"
+		msg += "\t\t<td>"+str(row['ae_name'])+"</td>\n"
+		#msg += "\t\t<td>Test</td>\n"
+		msg += "\t\t<td>"+str(trial_start_formatted)+"</td>\n"
+		msg += "\t\t<td>"+str(trial_end_formatted)+"</td>\n"
+		msg += "\t\t<td>"+str(running)+"</td>\n"
+		msg += "\t\t<td>"+str(launches_count)+"</td>\n"
+		msg += "\t</tr>\n"
 
 msg += "</table>"
 
