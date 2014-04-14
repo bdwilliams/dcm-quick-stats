@@ -45,7 +45,7 @@ if os.environ['SQL_USER'] is not None and os.environ['TO_ADDRESS'] is not None:
 			mixcoatl_settings.set_access_key(row['api_key'])
 			mixcoatl_settings.set_secret_key(row['secret_key'])
 
-			for account in accounts:
+			for account in Account.all():
 				params = {'activeOnly':'false', 'accountId':account.account_id}
 				servers = sorted(Server.all(params=params), key=attrgetter('start_date'))
 				running = 0
