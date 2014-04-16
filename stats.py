@@ -68,69 +68,69 @@ if os.environ['SQL_USER'] is not None and os.environ['TO_ADDRESS'] is not None:
 						if server.status != 'TERMINATED':
 							running += 1
 
-				msg += str(row['client_name'])+"\n\n"
-				msg += "Launched Server(s): "+str(launches_count)+"\n"
-				msg += "Running Server(s): "+str(running)+"\n"
+			msg += str(row['client_name'])+"\n\n"
+			msg += "Launched Server(s): "+str(launches_count)+"\n"
+			msg += "Running Server(s): "+str(running)+"\n"
 
-				launch_list = collections.OrderedDict(sorted(launches.items()))
+			launch_list = collections.OrderedDict(sorted(launches.items()))
 
-				msg += "\n"
+			msg += "\n"
 
-				msg += "Daily breakdown:"+"\n"
+			msg += "Daily breakdown:"+"\n"
 
-				for l in launch_list:
-					msg += "\tDate:"+l+" Launches:"+str(launches[l])+"\n"
+			for l in launch_list:
+				msg += "\tDate:"+l+" Launches:"+str(launches[l])+"\n"
 
-				msg += "\n"
+			msg += "\n"
 
-				if row['se_name'] is not None:
-					msg += "Sales Engineer: "+row['se_name']+"\n"
+			if row['se_name'] is not None:
+				msg += "Sales Engineer: "+row['se_name']+"\n"
 
-				if row['ae_name'] is not None:
-					msg += "Account Executive: "+row['ae_name']+"\n"
+			if row['ae_name'] is not None:
+				msg += "Account Executive: "+row['ae_name']+"\n"
 
-				if row['ready_date'] is not None:
-					ready_date_formatted = datetime.strptime(str(row['ready_date']), '%Y-%m-%d 00:00:00').strftime("%Y-%m-%d")
-					msg += "Date Managed Trial created by CSE: "+str(ready_date_formatted)+"\n"
+			if row['ready_date'] is not None:
+				ready_date_formatted = datetime.strptime(str(row['ready_date']), '%Y-%m-%d 00:00:00').strftime("%Y-%m-%d")
+				msg += "Date Managed Trial created by CSE: "+str(ready_date_formatted)+"\n"
 
-				if row['handed_to_sales'] is not None:
-					handed_to_sales_formatted = datetime.strptime(str(row['handed_to_sales']), '%Y-%m-%d 00:00:00').strftime("%Y-%m-%d")
-					msg += "Date Managed Trial handed to Sales :"+str(handed_to_sales_formatted)+"\n"
+			if row['handed_to_sales'] is not None:
+				handed_to_sales_formatted = datetime.strptime(str(row['handed_to_sales']), '%Y-%m-%d 00:00:00').strftime("%Y-%m-%d")
+				msg += "Date Managed Trial handed to Sales :"+str(handed_to_sales_formatted)+"\n"
 
-				if row['trial_start'] is not None:
-					trial_start_formatted = datetime.strptime(str(row['trial_start']), '%Y-%m-%d 00:00:00').strftime("%Y-%m-%d")
-					msg += "Date Managed Trial handed to Client: "+str(trial_start_formatted)+"\n"
+			if row['trial_start'] is not None:
+				trial_start_formatted = datetime.strptime(str(row['trial_start']), '%Y-%m-%d 00:00:00').strftime("%Y-%m-%d")
+				msg += "Date Managed Trial handed to Client: "+str(trial_start_formatted)+"\n"
 
-				if row['trial_end'] is not None:
-					trial_end_formatted = datetime.strptime(str(row['trial_end']), '%Y-%m-%d 00:00:00').strftime("%Y-%m-%d")
-					msg += "Date Managed Trial completes: "+str(trial_end_formatted)+"\n"
+			if row['trial_end'] is not None:
+				trial_end_formatted = datetime.strptime(str(row['trial_end']), '%Y-%m-%d 00:00:00').strftime("%Y-%m-%d")
+				msg += "Date Managed Trial completes: "+str(trial_end_formatted)+"\n"
 
-				for b in budgets:
-					if row['budget_id'] == b.billing_code_id:
-						if b.current_usage and b.current_usage['value']:
-							msg += "Current Cost: $"+str(round(b.current_usage['value'],2))+"\n"
+			for b in budgets:
+				if row['budget_id'] == b.billing_code_id:
+					if b.current_usage and b.current_usage['value']:
+						msg += "Current Cost: $"+str(round(b.current_usage['value'],2))+"\n"
 
-				msg_body = MIMEText(msg)
+			msg_body = MIMEText(msg)
 
-				if row['se_email'] is not None and row['ae_email'] is not None:
-					to = [os.environ['TO_ADDRESS'], row['se_email'], row['ae_email']]
-				elif row['se_email'] is not None and row['ae_email'] is None:
-					to = [os.environ['TO_ADDRESS'], row['se_email']]
-				elif row['se_email'] is  None and row['ae_email'] is not None:
-					to = [os.environ['TO_ADDRESS'], row['ae_email']]
-				else:
-					to = [os.environ['TO_ADDRESS']]
+			if row['se_email'] is not None and row['ae_email'] is not None:
+				to = [os.environ['TO_ADDRESS'], row['se_email'], row['ae_email']]
+			elif row['se_email'] is not None and row['ae_email'] is None:
+				to = [os.environ['TO_ADDRESS'], row['se_email']]
+			elif row['se_email'] is  None and row['ae_email'] is not None:
+				to = [os.environ['TO_ADDRESS'], row['ae_email']]
+			else:
+				to = [os.environ['TO_ADDRESS']]
 
-				msg_body['To'] = ", ".join(to)
-				msg_body['Subject'] = str(row['client_name'])+" Managed Trial Stats ("+str(time.strftime("%Y-%m-%d"))+")"
+			msg_body['To'] = ", ".join(to)
+			msg_body['Subject'] = str(row['client_name'])+" Managed Trial Stats ("+str(time.strftime("%Y-%m-%d"))+")"
 
-				try:
-					smtpObj = smtplib.SMTP("localhost")
-					smtpObj.sendmail('poc-notifications@enstratius.com', to, msg_body.as_string())
-					print "Sent Email..."
-					smtpObj.quit()
-				except SMTPException:
-					print "Error: unable to send email."
+			try:
+				smtpObj = smtplib.SMTP("localhost")
+				smtpObj.sendmail('poc-notifications@enstratius.com', to, msg_body.as_string())
+				print "Sent Email..."
+				smtpObj.quit()
+			except SMTPException:
+				print "Error: unable to send email."
 
 		if os.path.exists('tmpfile'):
 			os.remove('tmpfile')
